@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CCA-F Trainer — Claude Certified Architect practice</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;450;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0e1119;
+    --ink-2:#151a26;
+    --card:#1b2130;
+    --card-2:#212838;
+    --line:#2b3346;
+    --line-2:#39445c;
+    --text:#e9ecf4;
+    --text-dim:#9aa3b8;
+    --text-faint:#6b7488;
+    --gold:#e3b23c;
+    --gold-dim:#8a6f2e;
+    --green:#3fb950;
+    --green-bg:#122417;
+    --red:#f0553f;
+    --red-bg:#2a1512;
+    --blue:#4b8bf5;
+    --radius:14px;
+    --mono:'JetBrains Mono',ui-monospace,Menlo,Consolas,monospace;
+    --display:'Space Grotesk',system-ui,sans-serif;
+    --body:'Inter',system-ui,-apple-system,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    background:
+      radial-gradient(1100px 600px at 80% -10%, rgba(227,178,60,.06), transparent 60%),
+      radial-gradient(900px 500px at -10% 110%, rgba(75,139,245,.05), transparent 55%),
+      var(--ink);
+    color:var(--text);
+    font-family:var(--body);
+    line-height:1.55;
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:920px;margin:0 auto;padding:28px 22px 90px}
+  .mono{font-family:var(--mono)}
+  button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+  button:focus-visible,.opt:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+
+  /* ---------- top bar ---------- */
+  .topbar{
+    display:flex;align-items:center;justify-content:space-between;gap:14px;
+    padding:14px 18px;margin-bottom:26px;
+    border:1px solid var(--line);border-radius:var(--radius);
+    background:linear-gradient(180deg,var(--ink-2),rgba(21,26,38,.4));
+  }
+  .brand{display:flex;align-items:center;gap:13px;min-width:0}
+  .seal{
+    width:38px;height:38px;flex:none;border-radius:9px;
+    background:conic-gradient(from 210deg,var(--gold),#f6d27a,var(--gold-dim),var(--gold));
+    display:grid;place-items:center;color:#1a1204;font-family:var(--display);font-weight:700;font-size:15px;
+    box-shadow:0 0 0 1px rgba(227,178,60,.35), 0 6px 18px rgba(227,178,60,.12);
+  }
+  .brand h1{font-family:var(--display);font-size:16px;font-weight:600;letter-spacing:.2px;line-height:1.15}
+  .brand .sub{font-family:var(--mono);font-size:10.5px;color:var(--text-faint);letter-spacing:1.5px;text-transform:uppercase}
+  .tbadge{font-family:var(--mono);font-size:11px;color:var(--gold);border:1px solid var(--gold-dim);
+    padding:5px 10px;border-radius:20px;background:rgba(227,178,60,.06);white-space:nowrap}
+
+  /* ---------- start screen ---------- */
+  .hero{border:1px solid var(--line);border-radius:var(--radius);background:var(--ink-2);padding:30px 28px;margin-bottom:22px}
+  .eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--gold);margin-bottom:14px}
+  .hero h2{font-family:var(--display);font-size:29px;font-weight:600;line-height:1.15;margin-bottom:12px;letter-spacing:-.3px}
+  .hero p{color:var(--text-dim);max-width:60ch;font-size:15px}
+  .facts{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
+  .fact{font-family:var(--mono);font-size:11.5px;color:var(--text-dim);border:1px solid var(--line);
+    background:var(--card);border-radius:8px;padding:7px 11px}
+  .fact b{color:var(--text)}
+
+  .section-label{font-family:var(--mono);font-size:11px;letter-spacing:2px;text-transform:uppercase;
+    color:var(--text-faint);margin:26px 4px 12px}
+
+  .modes{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .mode{
+    text-align:left;border:1px solid var(--line);background:var(--card);border-radius:12px;
+    padding:17px 17px;transition:border-color .15s,transform .1s,background .15s;position:relative;
+  }
+  .mode:hover{border-color:var(--line-2);background:var(--card-2)}
+  .mode.on{border-color:var(--gold);background:rgba(227,178,60,.05)}
+  .mode .mtitle{font-family:var(--display);font-weight:600;font-size:15.5px;margin-bottom:4px;display:flex;align-items:center;gap:8px}
+  .mode .mdesc{font-size:12.8px;color:var(--text-dim)}
+  .mode .mmeta{font-family:var(--mono);font-size:10.5px;color:var(--gold);margin-top:9px;letter-spacing:.5px}
+  .mode .tick{position:absolute;top:14px;right:14px;width:18px;height:18px;border-radius:50%;
+    border:1.5px solid var(--line-2);display:grid;place-items:center;font-size:11px;color:var(--ink)}
+  .mode.on .tick{background:var(--gold);border-color:var(--gold)}
+  .mode.on .tick::after{content:"✓";color:#1a1204;font-weight:700}
+
+  .filters{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+  .fgroup{border:1px solid var(--line);border-radius:12px;background:var(--card);padding:14px 15px}
+  .fgroup h4{font-family:var(--mono);font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-faint);margin-bottom:11px}
+  .chips{display:flex;flex-wrap:wrap;gap:7px}
+  .chip{font-size:12px;border:1px solid var(--line);background:var(--ink-2);color:var(--text-dim);
+    padding:6px 10px;border-radius:7px;transition:all .12s}
+  .chip:hover{border-color:var(--line-2)}
+  .chip.on{background:rgba(227,178,60,.1);border-color:var(--gold);color:var(--gold)}
+  .toggle-row{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:14px;
+    border:1px solid var(--line);border-radius:12px;background:var(--card);padding:14px 15px}
+  .toggle-row .tl{font-size:13.5px}
+  .toggle-row .tl small{display:block;color:var(--text-faint);font-size:11.5px;margin-top:2px}
+  .sw{width:46px;height:26px;border-radius:20px;background:var(--line);position:relative;transition:background .15s;flex:none}
+  .sw.on{background:var(--gold)}
+  .sw::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;
+    background:#fff;transition:transform .15s}
+  .sw.on::after{transform:translateX(20px)}
+
+  .cta-row{display:flex;align-items:center;gap:14px;margin-top:26px;flex-wrap:wrap}
+  .btn{
+    font-family:var(--display);font-weight:600;font-size:14.5px;letter-spacing:.2px;
+    padding:13px 26px;border-radius:10px;transition:transform .1s,box-shadow .15s,filter .15s;
+  }
+  .btn-primary{background:var(--gold);color:#171003;box-shadow:0 6px 20px rgba(227,178,60,.2)}
+  .btn-primary:hover{filter:brightness(1.06);transform:translateY(-1px)}
+  .btn-primary:active{transform:translateY(0)}
+  .btn-primary:disabled{opacity:.4;cursor:not-allowed;box-shadow:none;transform:none}
+  .btn-ghost{border:1px solid var(--line-2);color:var(--text);padding:12px 20px;border-radius:10px;font-size:14px;font-family:var(--display);font-weight:500}
+  .btn-ghost:hover{background:var(--card)}
+  .count-note{font-family:var(--mono);font-size:12px;color:var(--text-dim)}
+  .count-note b{color:var(--gold)}
+
+  /* ---------- exam screen ---------- */
+  .examhead{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:16px;flex-wrap:wrap}
+  .progress-meta{font-family:var(--mono);font-size:12px;color:var(--text-dim)}
+  .progress-meta b{color:var(--text)}
+  .timer{font-family:var(--mono);font-size:13px;color:var(--gold);border:1px solid var(--gold-dim);
+    padding:6px 12px;border-radius:8px;background:rgba(227,178,60,.05)}
+  .timer.warn{color:var(--red);border-color:var(--red)}
+  .pbar{height:5px;border-radius:4px;background:var(--line);overflow:hidden;margin-bottom:22px}
+  .pbar > span{display:block;height:100%;background:linear-gradient(90deg,var(--gold),#f6d27a);transition:width .3s}
+
+  .scenario{border:1px solid var(--line);border-left:3px solid var(--gold);border-radius:10px;
+    background:linear-gradient(180deg,var(--ink-2),rgba(21,26,38,.35));padding:13px 16px;margin-bottom:16px}
+  .scenario .sh{font-family:var(--mono);font-size:10.5px;letter-spacing:1.5px;text-transform:uppercase;color:var(--gold);margin-bottom:5px}
+  .scenario .st{font-size:13px;color:var(--text-dim);line-height:1.5}
+
+  .qcard{border:1px solid var(--line);border-radius:var(--radius);background:var(--ink-2);padding:24px 24px;margin-bottom:16px}
+  .qtags{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+  .qtag{font-family:var(--mono);font-size:10px;letter-spacing:.8px;text-transform:uppercase;
+    border:1px solid var(--line);border-radius:20px;padding:4px 10px;color:var(--text-dim);background:var(--card)}
+  .qtag.dom{color:var(--blue);border-color:#2a3a5c}
+  .qtag.multi{color:var(--gold);border-color:var(--gold-dim)}
+  .qstem{font-size:16px;line-height:1.62;margin-bottom:20px}
+  .qstem code{font-family:var(--mono);font-size:13.5px;background:var(--card-2);color:#f0c98a;
+    padding:1px 6px;border-radius:5px;border:1px solid var(--line)}
+  .opts{display:flex;flex-direction:column;gap:10px}
+  .opt{
+    display:flex;gap:13px;align-items:flex-start;text-align:left;width:100%;
+    border:1px solid var(--line);border-radius:11px;background:var(--card);
+    padding:14px 15px;transition:border-color .12s,background .12s;font-size:14.5px;line-height:1.5;
+  }
+  .opt:hover:not(.locked){border-color:var(--line-2);background:var(--card-2)}
+  .opt .key{font-family:var(--mono);font-weight:600;font-size:13px;flex:none;width:24px;height:24px;
+    border-radius:6px;border:1px solid var(--line-2);display:grid;place-items:center;color:var(--text-dim);
+    background:var(--ink-2);transition:all .12s;margin-top:1px}
+  .opt.sel{border-color:var(--gold);background:rgba(227,178,60,.06)}
+  .opt.sel .key{background:var(--gold);color:#171003;border-color:var(--gold)}
+  .opt.correct{border-color:var(--green);background:var(--green-bg)}
+  .opt.correct .key{background:var(--green);color:#04220b;border-color:var(--green)}
+  .opt.wrong{border-color:var(--red);background:var(--red-bg)}
+  .opt.wrong .key{background:var(--red);color:#2a0a06;border-color:var(--red)}
+  .opt.locked{cursor:default}
+  .opt .otext{flex:1}
+  .opt .rmark{font-family:var(--mono);font-size:11px;font-weight:600;margin-left:auto;align-self:center;flex:none}
+  .opt.correct .rmark{color:var(--green)}
+  .opt.wrong .rmark{color:var(--red)}
+
+  .explain{margin-top:18px;border:1px solid var(--line);border-radius:11px;overflow:hidden;
+    background:var(--card);animation:fade .25s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+  .explain .ehead{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line);
+    background:var(--card-2)}
+  .verdict{font-family:var(--display);font-weight:600;font-size:14px}
+  .verdict.ok{color:var(--green)}
+  .verdict.no{color:var(--red)}
+  .ansline{font-family:var(--mono);font-size:12px;color:var(--text-dim);margin-left:auto}
+  .ansline b{color:var(--gold)}
+  .explain .ebody{padding:15px 16px;font-size:14px;line-height:1.62;color:var(--text)}
+  .explain .ebody .src{display:block;margin-top:11px;font-family:var(--mono);font-size:11px;color:var(--text-faint);letter-spacing:.3px}
+
+  .navrow{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:6px}
+  .navbtns{display:flex;gap:10px}
+  .btn-nav{border:1px solid var(--line-2);color:var(--text);padding:11px 20px;border-radius:9px;
+    font-family:var(--display);font-weight:500;font-size:14px;transition:background .12s}
+  .btn-nav:hover:not(:disabled){background:var(--card)}
+  .btn-nav:disabled{opacity:.35;cursor:not-allowed}
+  .btn-check{background:var(--gold);color:#171003;font-weight:600}
+  .btn-check:hover{filter:brightness(1.06)}
+  .btn-check:disabled{opacity:.4;cursor:not-allowed;filter:none}
+
+  .palette{display:flex;flex-wrap:wrap;gap:6px;margin-top:24px;padding-top:20px;border-top:1px solid var(--line)}
+  .pdot{width:30px;height:30px;border-radius:7px;font-family:var(--mono);font-size:11.5px;
+    border:1px solid var(--line);background:var(--card);color:var(--text-dim);transition:all .1s}
+  .pdot:hover{border-color:var(--line-2)}
+  .pdot.cur{border-color:var(--gold);color:var(--gold)}
+  .pdot.answered{background:var(--card-2);color:var(--text)}
+  .pdot.ok{border-color:var(--green);color:var(--green)}
+  .pdot.no{border-color:var(--red);color:var(--red)}
+
+  /* ---------- results ---------- */
+  .results{border:1px solid var(--line);border-radius:var(--radius);background:var(--ink-2);padding:30px 28px;margin-bottom:20px}
+  .gauge-wrap{display:flex;gap:30px;align-items:center;flex-wrap:wrap}
+  .gauge{position:relative;width:190px;height:190px;flex:none}
+  .gauge svg{transform:rotate(-90deg)}
+  .gauge .center{position:absolute;inset:0;display:grid;place-content:center;text-align:center}
+  .gauge .score{font-family:var(--display);font-size:46px;font-weight:700;line-height:1}
+  .gauge .scale{font-family:var(--mono);font-size:11px;color:var(--text-faint);letter-spacing:1px;margin-top:4px}
+  .verdict-block{flex:1;min-width:230px}
+  .verdict-block .vstatus{font-family:var(--display);font-size:30px;font-weight:700;letter-spacing:-.4px;margin-bottom:6px}
+  .verdict-block .vstatus.pass{color:var(--green)}
+  .verdict-block .vstatus.fail{color:var(--red)}
+  .verdict-block p{color:var(--text-dim);font-size:14px;max-width:44ch}
+  .rstats{display:flex;gap:22px;margin-top:16px;flex-wrap:wrap}
+  .rstat .n{font-family:var(--display);font-size:22px;font-weight:600}
+  .rstat .l{font-family:var(--mono);font-size:10.5px;color:var(--text-faint);letter-spacing:1px;text-transform:uppercase}
+
+  .domains{margin-top:26px}
+  .dbar-row{margin-bottom:15px}
+  .dbar-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+  .dbar-name{font-size:13.5px;font-weight:500}
+  .dbar-name .w{font-family:var(--mono);font-size:11px;color:var(--text-faint);margin-left:8px}
+  .dbar-val{font-family:var(--mono);font-size:12.5px;color:var(--text-dim)}
+  .dbar{height:8px;border-radius:5px;background:var(--line);overflow:hidden}
+  .dbar > span{display:block;height:100%;border-radius:5px;transition:width .6s cubic-bezier(.2,.8,.2,1)}
+
+  .disclaimer{font-size:11.5px;color:var(--text-faint);margin-top:18px;line-height:1.5;border-top:1px solid var(--line);padding-top:14px}
+
+  .footer{text-align:center;font-family:var(--mono);font-size:11px;color:var(--text-faint);margin-top:34px;letter-spacing:.4px;line-height:1.7}
+  .hidden{display:none!important}
+
+  @media(max-width:640px){
+    .wrap{padding:18px 14px 80px}
+    .modes,.filters{grid-template-columns:1fr}
+    .hero h2{font-size:24px}
+    .gauge-wrap{gap:20px}
+    .qcard{padding:20px 16px}
+    .opt .rmark{display:none}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topbar">
+    <div class="brand">
+      <div class="seal">CA</div>
+      <div>
+        <h1>Claude Certified Architect — Foundations</h1>
+        <div class="sub">Practice Simulator · CCAR-F</div>
+      </div>
+    </div>
+    <div class="tbadge" id="statusBadge">Not started</div>
+  </div>
+
+  <!-- ============ START SCREEN ============ -->
+  <div id="startScreen">
+    <div class="hero">
+      <div class="eyebrow">Unofficial practice · aligned to Exam Guide v1.0</div>
+      <h2>Rehearse the real thing before you sit it.</h2>
+      <p>Scenario-based questions across all five domains, each with the official answer and the reasoning behind it. Pick a mode, tune the scope, and get a scaled-score readout and per-domain breakdown at the end.</p>
+      <div class="facts">
+        <span class="fact"><b>60</b> items on the real exam</span>
+        <span class="fact"><b>120</b> min limit</span>
+        <span class="fact">Pass at <b>720</b> / 1,000</span>
+        <span class="fact"><b>4</b> of 6 scenarios</span>
+        <span class="fact"><b id="bankCount">0</b> questions in this bank</span>
+      </div>
+    </div>
+
+    <div class="section-label">01 — Choose a mode</div>
+    <div class="modes" id="modeGrid"></div>
+
+    <div class="section-label">02 — Tune the scope</div>
+    <div class="filters">
+      <div class="fgroup">
+        <h4>Domains</h4>
+        <div class="chips" id="domainChips"></div>
+      </div>
+      <div class="fgroup">
+        <h4>Scenarios</h4>
+        <div class="chips" id="scenarioChips"></div>
+      </div>
+    </div>
+    <div class="toggle-row" id="feedbackToggle">
+      <div class="tl">Instant feedback
+        <small>Show the answer and explanation right after each question. Off = exam mode (results at the end).</small>
+      </div>
+      <div class="sw on" id="fbSwitch"></div>
+    </div>
+    <div class="toggle-row" id="timerToggle">
+      <div class="tl">Timer
+        <small>Count down from the exam-proportional limit for your question count.</small>
+      </div>
+      <div class="sw" id="tmSwitch"></div>
+    </div>
+
+    <div class="cta-row">
+      <button class="btn btn-primary" id="startBtn">Start session →</button>
+      <span class="count-note" id="scopeNote"></span>
+    </div>
+  </div>
+
+  <!-- ============ EXAM SCREEN ============ -->
+  <div id="examScreen" class="hidden">
+    <div class="examhead">
+      <div class="progress-meta">Question <b id="qNum">1</b> of <b id="qTotal">1</b> · <span id="answeredMeta">0 answered</span></div>
+      <div class="timer hidden mono" id="timerBox">120:00</div>
+    </div>
+    <div class="pbar"><span id="pbarFill" style="width:0%"></span></div>
+
+    <div class="scenario" id="scenarioBox">
+      <div class="sh" id="scenarioName"></div>
+      <div class="st" id="scenarioText"></div>
+    </div>
+
+    <div class="qcard">
+      <div class="qtags" id="qTags"></div>
+      <div class="qstem" id="qStem"></div>
+      <div class="opts" id="optList"></div>
+      <div id="explainSlot"></div>
+    </div>
+
+    <div class="navrow">
+      <div class="navbtns">
+        <button class="btn-nav" id="prevBtn">← Prev</button>
+        <button class="btn-nav" id="nextBtn">Next →</button>
+      </div>
+      <div class="navbtns">
+        <button class="btn-nav btn-check" id="checkBtn">Check answer</button>
+        <button class="btn-nav btn-check hidden" id="finishBtn">Finish & score</button>
+      </div>
+    </div>
+
+    <div class="palette" id="palette"></div>
+  </div>
+
+  <!-- ============ RESULTS SCREEN ============ -->
+  <div id="resultsScreen" class="hidden">
+    <div class="results">
+      <div class="gauge-wrap">
+        <div class="gauge">
+          <svg width="190" height="190" viewBox="0 0 190 190">
+            <circle cx="95" cy="95" r="82" fill="none" stroke="var(--line)" stroke-width="13"/>
+            <circle id="gaugeArc" cx="95" cy="95" r="82" fill="none" stroke="var(--gold)" stroke-width="13"
+              stroke-linecap="round" stroke-dasharray="515" stroke-dashoffset="515"/>
+          </svg>
+          <div class="center">
+            <div class="score" id="scaledScore">—</div>
+            <div class="scale">SCALED / 1000</div>
+          </div>
+        </div>
+        <div class="verdict-block">
+          <div class="vstatus" id="passStatus">—</div>
+          <p id="passBlurb"></p>
+          <div class="rstats">
+            <div class="rstat"><div class="n" id="pctCorrect">0%</div><div class="l">Correct</div></div>
+            <div class="rstat"><div class="n" id="rawScore">0 / 0</div><div class="l">Raw</div></div>
+            <div class="rstat"><div class="n" id="timeUsed">—</div><div class="l">Time</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="domains" id="domainBreakdown"></div>
+
+      <div class="disclaimer">
+        The scaled score is an approximation for practice only. It maps your percentage correct onto the published 100–1,000 range with the 720 cut line — it is not the exam's actual equating model, and per-domain percentages don't determine pass/fail on the real exam. Domain weights shown reflect the official blueprint.
+      </div>
+    </div>
+
+    <div class="cta-row">
+      <button class="btn btn-primary" id="reviewBtn">Review answers →</button>
+      <button class="btn btn-ghost" id="restartBtn">New session</button>
+    </div>
+  </div>
+
+  <div class="footer">
+    Unofficial study aid · Not affiliated with or endorsed by Anthropic or Pearson VUE<br>
+    Original practice items written against the published exam blueprint · Contains no real exam content
+  </div>
+</div>
+
+<script src="questions.js"></script>
+<script>
+/* ============================================================
+   DOMAINS + SCENARIOS
+   ============================================================ */
+const DOMAINS = {
+  D1:{name:"Agentic Architecture & Orchestration", weight:27, color:"#e3b23c"},
+  D2:{name:"Tool Design & MCP Integration",         weight:18, color:"#4b8bf5"},
+  D3:{name:"Claude Code Configuration & Workflows", weight:20, color:"#3fb950"},
+  D4:{name:"Prompt Engineering & Structured Output",weight:20, color:"#c77dff"},
+  D5:{name:"Context Management & Reliability",       weight:15, color:"#ff8c66"},
+};
+const SCEN = {
+  CS:{name:"Customer Support Resolution Agent",
+      text:"A support agent built on the Agent SDK handles returns, billing disputes and account issues via MCP tools (get_customer, lookup_order, process_refund, escalate_to_human). Target: 80%+ first-contact resolution, escalating when appropriate."},
+  CC:{name:"Code Generation with Claude Code",
+      text:"Your team uses Claude Code for generation, refactoring, debugging and docs — integrated with custom slash commands, CLAUDE.md configs, and a choice between plan mode and direct execution."},
+  MA:{name:"Multi-Agent Research System",
+      text:"A coordinator delegates to specialized subagents — one searches the web, one analyzes documents, one synthesizes findings, one generates cited reports — to produce comprehensive research."},
+  DP:{name:"Developer Productivity with Claude",
+      text:"An Agent SDK tool helps engineers explore unfamiliar codebases, understand legacy systems and automate repetitive tasks using built-in tools (Read, Write, Bash, Grep, Glob) plus MCP servers."},
+  CI:{name:"Claude Code for Continuous Integration",
+      text:"Claude Code runs in your CI/CD pipeline for automated code review, test generation and PR feedback. Prompts must give actionable feedback and minimize false positives."},
+  DE:{name:"Structured Data Extraction",
+      text:"A pipeline extracts information from unstructured documents, validates output against JSON schemas, handles edge cases gracefully and feeds downstream systems."},
+};
+
+/* ============================================================
+   QUESTION BANK
+   src: "guide"  = official sample w/ published answer + reasoning
+        "screenshot" = additional sample from provided images
+        "modeled" = original, grounded in a specific task statement
+   ============================================================ */
+const QUESTIONS = window.CCAF_QUESTIONS || [];
+
+/* ============================================================
+   MODES
+   ============================================================ */
+const MODES = [
+  {id:"mock", title:"Full mock", icon:"◆",
+   desc:"A broad, exam-proportional draw across scenarios and domains. The closest thing to sitting it.",
+   meta:"all questions · exam mode", size:"all"},
+  {id:"quick", title:"Quick 10", icon:"⚡",
+   desc:"Ten random questions with instant feedback. Good for a warm-up or a spare ten minutes.",
+   meta:"10 questions · instant feedback", size:10},
+  {id:"domain", title:"Domain drill", icon:"◈",
+   desc:"Focus on the domains you pick below. Instant feedback so you learn as you go.",
+   meta:"filtered · instant feedback", size:"all"},
+  {id:"scenario", title:"Scenario focus", icon:"❖",
+   desc:"Practice within specific production scenarios — support, research, CI, and more.",
+   meta:"filtered · instant feedback", size:"all"},
+];
+
+/* ============================================================
+   STATE
+   ============================================================ */
+const state = {
+  mode:"mock",
+  domains:new Set(Object.keys(DOMAINS)),
+  scenarios:new Set(Object.keys(SCEN)),
+  instant:true,
+  timed:false,
+  queue:[],
+  orders:{},   // id -> array mapping display position -> original option index
+  idx:0,
+  answers:{},   // id -> [indices]
+  checked:{},   // id -> true
+  startTime:0,
+  endTime:0,
+  timerId:null,
+  secondsLeft:0,
+};
+
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const LETTERS = ["A","B","C","D","E","F"];
+
+/* ============================================================
+   START SCREEN RENDER
+   ============================================================ */
+function renderStart(){
+  $("#bankCount").textContent = QUESTIONS.length;
+
+  // modes
+  const mg = $("#modeGrid"); mg.innerHTML="";
+  MODES.forEach(m=>{
+    const el=document.createElement("button");
+    el.className="mode"+(state.mode===m.id?" on":"");
+    el.innerHTML=`<div class="tick"></div>
+      <div class="mtitle">${m.icon} ${m.title}</div>
+      <div class="mdesc">${m.desc}</div>
+      <div class="mmeta">${m.meta}</div>`;
+    el.onclick=()=>{ state.mode=m.id; applyModeDefaults(m.id); renderStart(); };
+    mg.appendChild(el);
+  });
+
+  // domain chips
+  const dc=$("#domainChips"); dc.innerHTML="";
+  Object.entries(DOMAINS).forEach(([k,d])=>{
+    const c=document.createElement("button");
+    c.className="chip"+(state.domains.has(k)?" on":"");
+    c.textContent=k+" · "+shortDom(d.name);
+    c.onclick=()=>{ toggleSet(state.domains,k,Object.keys(DOMAINS)); renderStart(); };
+    dc.appendChild(c);
+  });
+  // scenario chips
+  const sc=$("#scenarioChips"); sc.innerHTML="";
+  Object.entries(SCEN).forEach(([k,s])=>{
+    const c=document.createElement("button");
+    c.className="chip"+(state.scenarios.has(k)?" on":"");
+    c.textContent=k+" · "+s.name.replace(/ (Resolution Agent|System|with Claude|for Continuous Integration|Agent)$/,"");
+    c.onclick=()=>{ toggleSet(state.scenarios,k,Object.keys(SCEN)); renderStart(); };
+    sc.appendChild(c);
+  });
+
+  $("#fbSwitch").className="sw"+(state.instant?" on":"");
+  $("#tmSwitch").className="sw"+(state.timed?" on":"");
+
+  const pool=buildPool();
+  const n = poolSize(pool);
+  $("#scopeNote").innerHTML = `<b>${n}</b> question${n===1?"":"s"} match your scope`;
+  $("#startBtn").disabled = n===0;
+}
+function shortDom(n){return n.split(" & ")[0].replace("Prompt Engineering","Prompt Eng.").replace("Claude Code Configuration","Claude Code").replace("Agentic Architecture","Agentic").replace("Context Management","Context").replace("Tool Design","Tools");}
+function toggleSet(set,key,all){
+  if(set.has(key)){ if(set.size>1) set.delete(key); }
+  else set.add(key);
+}
+function applyModeDefaults(id){
+  if(id==="mock"){ state.instant=false; state.domains=new Set(Object.keys(DOMAINS)); state.scenarios=new Set(Object.keys(SCEN)); }
+  else if(id==="quick"){ state.instant=true; state.domains=new Set(Object.keys(DOMAINS)); state.scenarios=new Set(Object.keys(SCEN)); }
+  else { state.instant=true; }
+}
+
+/* ============================================================
+   POOL / QUEUE
+   ============================================================ */
+function buildPool(){
+  return QUESTIONS.filter(q=> state.domains.has(q.dom) && state.scenarios.has(q.scen));
+}
+function poolSize(pool){
+  const m=MODES.find(x=>x.id===state.mode);
+  if(m && m.size!=="all") return Math.min(m.size,pool.length);
+  return pool.length;
+}
+function shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
+
+function startSession(){
+  let pool=shuffle(buildPool());
+  const size=poolSize(pool);
+  pool=pool.slice(0,size);
+  // group by scenario so the exam feels scenario-based, but keep scenarios in random order
+  const byScen={};
+  pool.forEach(q=>{ (byScen[q.scen]=byScen[q.scen]||[]).push(q); });
+  const scenOrder=shuffle(Object.keys(byScen));
+  state.queue=[]; scenOrder.forEach(s=> state.queue.push(...byScen[s]));
+
+  state.idx=0; state.answers={}; state.checked={}; state.orders={};
+
+  /* Distribute correct answers evenly across A/B/C/D instead of letting them
+     pile up in one position. Single-answer items get a round-robin target slot;
+     multiple-response items are shuffled freely. */
+  let slot=0;
+  state.queue.forEach(q=>{
+    const n=q.opts.length;
+    const others=shuffle([...Array(n).keys()].filter(i=>!q.correct.includes(i)));
+    let order;
+    if(q.correct.length===1){
+      const target=slot++%n;
+      order=new Array(n); order[target]=q.correct[0];
+      let k=0; for(let p=0;p<n;p++){ if(p!==target) order[p]=others[k++]; }
+    } else {
+      order=shuffle([...Array(n).keys()]);
+    }
+    state.orders[q.id]=order;
+  });
+
+  state.startTime=Date.now(); state.endTime=0;
+  $("#statusBadge").textContent="In progress";
+
+  $("#startScreen").classList.add("hidden");
+  $("#resultsScreen").classList.add("hidden");
+  $("#examScreen").classList.remove("hidden");
+
+  if(state.timed){ startTimer(); } else { $("#timerBox").classList.add("hidden"); if(state.timerId)clearInterval(state.timerId); }
+  renderQuestion();
+}
+function startTimer(){
+  // exam-proportional: 120 min / 60 items = 2 min per item
+  state.secondsLeft = state.queue.length*120;
+  $("#timerBox").classList.remove("hidden");
+  updateTimer();
+  if(state.timerId)clearInterval(state.timerId);
+  state.timerId=setInterval(()=>{
+    state.secondsLeft--; updateTimer();
+    if(state.secondsLeft<=0){ clearInterval(state.timerId); finishSession(); }
+  },1000);
+}
+function updateTimer(){
+  const s=Math.max(0,state.secondsLeft);
+  const mm=String(Math.floor(s/60)).padStart(2,"0");
+  const ss=String(s%60).padStart(2,"0");
+  const box=$("#timerBox"); box.textContent=`${mm}:${ss}`;
+  box.classList.toggle("warn", s<=Math.min(120, state.queue.length*12));
+}
+
+/* ============================================================
+   QUESTION RENDER
+   ============================================================ */
+function renderQuestion(){
+  const q=state.queue[state.idx];
+  const total=state.queue.length;
+  $("#qNum").textContent=state.idx+1;
+  $("#qTotal").textContent=total;
+  const answered=Object.keys(state.answers).filter(id=>state.answers[id]&&state.answers[id].length).length;
+  $("#answeredMeta").textContent=`${answered} answered`;
+  $("#pbarFill").style.width=`${((state.idx+1)/total)*100}%`;
+
+  // scenario
+  const s=SCEN[q.scen];
+  $("#scenarioName").textContent=`Scenario · ${s.name}`;
+  $("#scenarioText").textContent=s.text;
+
+  // tags
+  const tags=$("#qTags"); tags.innerHTML="";
+  tags.appendChild(mkTag(`Q${state.idx+1}`,""));
+  tags.appendChild(mkTag(DOMAINS[q.dom].name, "dom"));
+  if(q.multi) tags.appendChild(mkTag("Multiple response","multi"));
+  tags.appendChild(mkTag(srcLabel(q.src),""));
+
+  $("#qStem").innerHTML=q.stem;
+
+  const isChecked = !!state.checked[q.id];
+  const sel = state.answers[q.id]||[];
+
+  const ol=$("#optList"); ol.innerHTML="";
+  const order=state.orders[q.id]||q.opts.map((_,i)=>i);
+  order.forEach((orig,pos)=>{
+    const b=document.createElement("button");
+    let cls="opt";
+    if(isChecked){
+      cls+=" locked";
+      if(q.correct.includes(orig)) cls+=" correct";
+      else if(sel.includes(orig)) cls+=" wrong";
+    } else if(sel.includes(orig)) cls+=" sel";
+    b.className=cls;
+    let rmark="";
+    if(isChecked && q.correct.includes(orig)) rmark=`<span class="rmark">CORRECT</span>`;
+    else if(isChecked && sel.includes(orig)) rmark=`<span class="rmark">YOUR PICK</span>`;
+    b.innerHTML=`<span class="key">${LETTERS[pos]}</span><span class="otext">${q.opts[orig]}</span>${rmark}`;
+    if(!isChecked) b.onclick=()=>selectOpt(q,orig);
+    ol.appendChild(b);
+  });
+
+  // explanation
+  const slot=$("#explainSlot"); slot.innerHTML="";
+  if(isChecked && state.instant){
+    slot.appendChild(buildExplain(q));
+  }
+
+  // buttons
+  const last = state.idx===total-1;
+  $("#prevBtn").disabled = state.idx===0;
+  $("#nextBtn").classList.toggle("hidden", last && (isChecked || !state.instant) );
+  $("#nextBtn").disabled=false;
+
+  const checkBtn=$("#checkBtn"), finishBtn=$("#finishBtn");
+  if(state.instant){
+    if(isChecked){
+      checkBtn.classList.add("hidden");
+      if(last){ finishBtn.classList.remove("hidden"); $("#nextBtn").classList.add("hidden"); }
+      else { finishBtn.classList.add("hidden"); }
+    } else {
+      checkBtn.classList.remove("hidden");
+      checkBtn.disabled = sel.length===0;
+      finishBtn.classList.add("hidden");
+    }
+  } else {
+    // exam mode: no check button, show finish on last
+    checkBtn.classList.add("hidden");
+    finishBtn.classList.toggle("hidden", !last);
+    $("#nextBtn").classList.toggle("hidden", last);
+  }
+
+  renderPalette();
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+function mkTag(t,extra){const e=document.createElement("span");e.className="qtag"+(extra?" "+extra:"");e.textContent=t;return e;}
+function srcLabel(s){return s==="guide"?"Official sample":s==="screenshot"?"Sample question":s==="modeled-adv"?"Advanced item":s==="modeled-gap"?"Objective drill":s==="modeled-gap"?"Gap-targeted":"Modeled item";}
+
+function selectOpt(q,i){
+  let sel=state.answers[q.id]?state.answers[q.id].slice():[];
+  if(q.multi){
+    if(sel.includes(i)) sel=sel.filter(x=>x!==i); else sel.push(i);
+  } else {
+    sel=[i];
+  }
+  state.answers[q.id]=sel;
+  renderQuestion();
+}
+
+function buildExplain(q){
+  const sel=(state.answers[q.id]||[]).slice().sort();
+  const cor=q.correct.slice().sort();
+  const ok = sel.length===cor.length && sel.every((v,k)=>v===cor[k]);
+  const order=state.orders[q.id]||q.opts.map((_,i)=>i);
+  const letterOf = orig => LETTERS[order.indexOf(orig)];
+  const wrap=document.createElement("div");
+  wrap.className="explain";
+  const corLetters=cor.map(letterOf).sort().join(", ");
+  // {n} tokens reference original option indices; resolve to their shuffled letters
+  const body=q.exp.replace(/\{(\d+)\}/g,(m,n)=>letterOf(Number(n))||m);
+  wrap.innerHTML=`
+    <div class="ehead">
+      <span class="verdict ${ok?"ok":"no"}">${ok?"✓ Correct":"✗ Not quite"}</span>
+      <span class="ansline">Answer: <b>${corLetters}</b></span>
+    </div>
+    <div class="ebody">${body}<span class="src">Domain: ${DOMAINS[q.dom].name} · ${srcLabel(q.src)}</span></div>`;
+  return wrap;
+}
+
+function renderPalette(){
+  const p=$("#palette"); p.innerHTML="";
+  state.queue.forEach((q,i)=>{
+    const d=document.createElement("button");
+    let cls="pdot";
+    const answered = state.answers[q.id]&&state.answers[q.id].length;
+    if(i===state.idx) cls+=" cur";
+    if(state.instant && state.checked[q.id]){
+      const sel=(state.answers[q.id]||[]).slice().sort();
+      const cor=q.correct.slice().sort();
+      const ok=sel.length===cor.length&&sel.every((v,k)=>v===cor[k]);
+      cls+= ok?" ok":" no";
+    } else if(answered) cls+=" answered";
+    d.className=cls; d.textContent=i+1;
+    d.onclick=()=>{ state.idx=i; renderQuestion(); };
+    p.appendChild(d);
+  });
+}
+
+/* ============================================================
+   NAV
+   ============================================================ */
+$("#prevBtn").onclick=()=>{ if(state.idx>0){state.idx--;renderQuestion();} };
+$("#nextBtn").onclick=()=>{ if(state.idx<state.queue.length-1){state.idx++;renderQuestion();} };
+$("#checkBtn").onclick=()=>{ const q=state.queue[state.idx]; if((state.answers[q.id]||[]).length){ state.checked[q.id]=true; renderQuestion(); } };
+$("#finishBtn").onclick=()=>{ finishSession(); };
+
+/* ============================================================
+   RESULTS
+   ============================================================ */
+function finishSession(){
+  state.endTime=Date.now();
+  if(state.timerId) clearInterval(state.timerId);
+  // mark all as checked for scoring/review
+  state.queue.forEach(q=> state.checked[q.id]=true);
+
+  let correct=0;
+  const domStats={}; Object.keys(DOMAINS).forEach(k=>domStats[k]={c:0,t:0});
+  state.queue.forEach(q=>{
+    const sel=(state.answers[q.id]||[]).slice().sort();
+    const cor=q.correct.slice().sort();
+    const ok=sel.length===cor.length&&sel.every((v,k)=>v===cor[k]);
+    domStats[q.dom].t++; if(ok){correct++; domStats[q.dom].c++;}
+  });
+  const total=state.queue.length;
+  const pct=total?Math.round(correct/total*100):0;
+  const scaled=Math.round(100 + (correct/Math.max(1,total))*900);
+  const pass=scaled>=720;
+
+  $("#examScreen").classList.add("hidden");
+  $("#resultsScreen").classList.remove("hidden");
+  $("#statusBadge").textContent = pass?"Passed (practice)":"Below cut (practice)";
+
+  // gauge
+  $("#scaledScore").textContent=scaled;
+  $("#scaledScore").style.color = pass?"var(--green)":"var(--red)";
+  const arc=$("#gaugeArc"); const circ=515;
+  const frac=Math.max(0,Math.min(1,(scaled-100)/900));
+  arc.style.stroke = pass?"var(--green)":"var(--red)";
+  requestAnimationFrame(()=>{ arc.style.transition="stroke-dashoffset 1s cubic-bezier(.2,.8,.2,1)"; arc.style.strokeDashoffset = circ-(circ*frac); });
+
+  $("#passStatus").textContent = pass?"Pass":"Not yet";
+  $("#passStatus").className="vstatus "+(pass?"pass":"fail");
+  $("#passBlurb").textContent = pass
+    ? `You cleared the 720 line on this set. On the real exam that's a scaled 720 on 100–1,000. Keep the weaker domains below sharp before test day.`
+    : `You're under the 720 cut on this set. Focus your next sessions on the lowest domains below, then re-run a full mock.`;
+
+  $("#pctCorrect").textContent=pct+"%";
+  $("#rawScore").textContent=`${correct} / ${total}`;
+  const secs=Math.round((state.endTime-state.startTime)/1000);
+  $("#timeUsed").textContent=`${Math.floor(secs/60)}m ${secs%60}s`;
+
+  // domain breakdown
+  const db=$("#domainBreakdown"); db.innerHTML=`<div class="section-label" style="margin:0 0 14px">Domain breakdown</div>`;
+  Object.entries(DOMAINS).forEach(([k,d])=>{
+    const st=domStats[k];
+    const p= st.t? Math.round(st.c/st.t*100) : null;
+    const row=document.createElement("div"); row.className="dbar-row";
+    row.innerHTML=`
+      <div class="dbar-top">
+        <div class="dbar-name">${d.name}<span class="w">${d.weight}% of exam</span></div>
+        <div class="dbar-val">${st.t? st.c+"/"+st.t+" · "+p+"%" : "not tested"}</div>
+      </div>
+      <div class="dbar"><span style="width:${p||0}%;background:${p===null?'var(--line-2)':d.color}"></span></div>`;
+    db.appendChild(row);
+  });
+}
+
+/* review = go back into exam view with everything checked */
+$("#reviewBtn").onclick=()=>{
+  state.instant=true;
+  state.queue.forEach(q=> state.checked[q.id]=true);
+  state.idx=0;
+  $("#resultsScreen").classList.add("hidden");
+  $("#examScreen").classList.remove("hidden");
+  $("#timerBox").classList.add("hidden");
+  renderQuestion();
+};
+$("#restartBtn").onclick=()=>resetToStart();
+function resetToStart(){
+  if(state.timerId)clearInterval(state.timerId);
+  $("#resultsScreen").classList.add("hidden");
+  $("#examScreen").classList.add("hidden");
+  $("#startScreen").classList.remove("hidden");
+  $("#statusBadge").textContent="Not started";
+  window.scrollTo({top:0});
+  renderStart();
+}
+
+/* ============================================================
+   TOGGLES + INIT
+   ============================================================ */
+$("#fbSwitch").onclick=()=>{ state.instant=!state.instant; renderStart(); };
+$("#tmSwitch").onclick=()=>{ state.timed=!state.timed; renderStart(); };
+$("#startBtn").onclick=startSession;
+
+applyModeDefaults("mock");
+renderStart();
+</script>
+</body>
+</html>
